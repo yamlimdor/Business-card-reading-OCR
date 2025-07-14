@@ -110,11 +110,20 @@ recognizeBtn.addEventListener('click', () => {
 
 // --- OCR実行関数 ---
 
+// script.js の runTesseract 関数内
 async function runTesseract() {
     try {
+        updateStatus('Tesseract.js: 認識準備中...', 'progress');
         const { data: { text } } = await Tesseract.recognize(
-            canvas, 'jpn',
-            { logger: m => { if (m.status === 'recognizing text') { updateStatus(`認識中... (${Math.floor(m.progress * 100)}%)`, 'progress'); } } }
+            canvas,
+            'jpn+eng', // ★★★ 日本語と英語を両方指定 ★★★
+            {
+                logger: m => {
+                    if (m.status === 'recognizing text') {
+                        updateStatus(`認識中... (${Math.floor(m.progress * 100)}%)`, 'progress');
+                    }
+                }
+            }
         );
         updateStatus('Tesseract.js で認識完了', 'success');
         resultText.value = text;
