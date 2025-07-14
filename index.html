@@ -1,0 +1,69 @@
+<!-- index.html (デザイン適用版) -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>名刺OCRアプリ</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>名刺OCRアプリ</h1>
+            <p>カメラで名刺を撮影し、テキストを認識します。</p>
+        </header>
+
+        <main>
+            <div class="camera-area">
+                <video id="video" autoplay playsinline></video>
+                <canvas id="canvas"></canvas>
+            </div>
+
+            <div class="controls">
+                <div class="control-group">
+                    <h3>1. OCRエンジン選択</h3>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" id="vision-ai" name="ocr-engine" value="vision-ai" checked>
+                            <span>高精度 (Vision AI)</span>
+                        </label>
+                        <label>
+                            <input type="radio" id="tesseract" name="ocr-engine" value="tesseract">
+                            <span>標準 (Tesseract.js)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>2. 操作</h3>
+                    <div class="button-group">
+                        <button id="snap" class="btn btn-secondary">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M10.5 8.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2zm.5 2a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1zm9 2.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z"/></svg>
+                            撮影する
+                        </button>
+                        <button id="recognize" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M1.5 2A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13zM1 3.5a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 .5.5v1.954l-3.359-2.332a.5.5 0 0 0-.642.052L10 4.977l-1.928-1.48a.5.5 0 0 0-.644.049L4.854 5.923 1 3.73V3.5zm14 9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-6.917l2.25 1.5a.5.5 0 0 0 .642-.052L7.502 8.44l1.928 1.479a.5.5 0 0 0 .644-.049L13.146 8.35l2.854 1.903V12.5z"/></svg>
+                            テキスト認識
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-area">
+                <h3>認識結果</h3>
+                <p id="status" class="status-info">準備完了</p>
+                <textarea id="result" rows="12" placeholder="ここに認識されたテキストが表示されます..."></textarea>
+            </div>
+        </main>
+    </div>
+
+    <!-- JavaScript Libraries & Files -->
+    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
+    <script src="script.js"></script>
+</body>
+</html>

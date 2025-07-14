@@ -1,0 +1,217 @@
+/* style.css */
+
+/* --- グローバルスタイル & フォント --- */
+:root {
+    --primary-color: #007bff;
+    --secondary-color: #6c757d;
+    --light-gray: #f8f9fa;
+    --border-color: #dee2e6;
+    --text-color: #343a40;
+    --success-color: #28a745;
+    --error-color: #dc3545;
+}
+
+body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background-color: var(--light-gray);
+    color: var(--text-color);
+    margin: 0;
+    padding: 2rem 1rem;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+header {
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+h1 {
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+h3 {
+    font-weight: 500;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 0.5rem;
+    display: inline-block;
+}
+
+/* --- カメラエリア --- */
+.camera-area {
+    position: relative;
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto 2rem auto;
+    background-color: #000;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+#video, #canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+#canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: none; /* JavaScriptで表示を切り替える */
+}
+
+/* --- 操作パネル --- */
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.control-group {
+    flex: 1;
+    min-width: 250px;
+}
+
+/* カスタムラジオボタン */
+.radio-group label {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.radio-group label:not(:last-child) {
+    margin-bottom: 0.5rem;
+}
+
+.radio-group input[type="radio"] {
+    display: none;
+}
+
+.radio-group input[type="radio"] + span::before {
+    content: '';
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    margin-right: 0.75rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.radio-group input[type="radio"]:checked + span::before {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px #fff inset;
+}
+
+.radio-group label:hover {
+    background-color: var(--light-gray);
+    border-color: #c0c6cc;
+}
+
+/* ボタン */
+.button-group {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    text-align: center;
+    flex-grow: 1;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background-color: var(--secondary-color);
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+    transform: translateY(-2px);
+}
+
+/* --- 結果表示エリア --- */
+#status {
+    margin: 0 0 0.5rem 0;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: all 0.3s;
+}
+.status-info { background-color: #e2e3e5; }
+.status-progress { background-color: #cce5ff; color: #004085; }
+.status-success { background-color: #d4edda; color: #155724; }
+.status-error { background-color: #f8d7da; color: #721c24; }
+
+
+#result {
+    width: 100%;
+    box-sizing: border-box; /* paddingを含めて幅100%にする */
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 1rem;
+    line-height: 1.7;
+    background-color: var(--light-gray);
+    resize: vertical;
+}
+
+#result:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* --- レスポンシブ対応 --- */
+@media (max-width: 768px) {
+    body {
+        padding: 1rem 0;
+    }
+    .container {
+        border-radius: 0;
+        padding: 1.5rem;
+    }
+    .controls {
+        flex-direction: column;
+    }
+    .button-group {
+        flex-direction: column;
+    }
+}
