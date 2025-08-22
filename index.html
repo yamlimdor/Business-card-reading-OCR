@@ -45,7 +45,7 @@
                         <button id="switch-camera" class="btn btn-secondary" title="カメラを切り替え">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-repeat" viewBox="0 0 16 16">
                                 <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/>
-                <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.5A5.002 5.002 0 0 0 8 3zM3.5 12A5.002 5.002 0 0 0 8 13c1.552 0 2.94-.707 3.857-1.818a.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.5A5.002 5.002 0 0 0 8 13z"/>
+                                <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.5A5.002 5.002 0 0 0 8 3zM3.5 12A5.002 5.002 0 0 0 8 13c1.552 0 2.94-.707 3.857-1.818a.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.5A5.002 5.002 0 0 0 8 13z"/>
                             </svg>
                             カメラ切替
                         </button>
@@ -53,6 +53,30 @@
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M10.5 8.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/><path d="M2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2zm.5 2a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1zm9 2.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z"/></svg>
                             撮影する
                         </button>
+                    </div>
+                </div>
+
+                <div id="preprocessing-controls" class="control-group" style="display: none;">
+                    <h3>3. 画像の前処理調整 (Tesseract.js)</h3>
+                    <div class="slider-group">
+                        <label for="block-size">ブロックサイズ: <span id="block-size-value">11</span></label>
+                        <input type="range" id="block-size" min="3" max="31" step="2" value="11" class="slider">
+                    </div>
+                    <div class="slider-group">
+                        <label for="c-value">C値: <span id="c-value-value">2</span></label>
+                        <input type="range" id="c-value" min="0" max="10" step="1" value="2" class="slider">
+                    </div>
+                    <div class="toggle-group">
+                         <label class="switch">
+                            <input type="checkbox" id="show-processed">
+                            <span>処理後画像を表示</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>4. 実行</h3>
+                    <div class="button-group">
                         <button id="recognize" class="btn btn-primary">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M1.5 2A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13zM1 3.5a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 .5.5v1.954l-3.359-2.332a.5.5 0 0 0-.642.052L10 4.977l-1.928-1.48a.5.5 0 0 0-.644.049L4.854 5.923 1 3.73V3.5zm14 9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-6.917l2.25 1.5a.5.5 0 0 0 .642-.052L7.502 8.44l1.928 1.479a.5.5 0 0 0 .644-.049L13.146 8.35l2.854 1.903V12.5z"/></svg>
                             テキスト認識
