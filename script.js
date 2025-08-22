@@ -87,6 +87,32 @@ function restoreOriginalImage() {
     }
 }
 
+// ★★★ 新しい画像処理ヘルパー関数 ★★★
+function getProcessedImage(sourceImageData, blockSize, C) {
+    const MAX_WIDTH = 1200;
+    let src = cv.matFromImageData(sourceImageData);
+    let resized = new cv.Mat();
+
+    // 画像が大きすぎる場合にリサイズする
+    const originalSize = src.size();
+    if (originalSize.width > MAX_WIDTH) {
+        const newSize = new cv.Size(MAX_WIDTH, Math.floor(originalSize.height * MAX_WIDTH / originalSize.width));
+        cv.resize(src, resized, newSize, 0, 0, cv.INTER_AREA);
+    } else {
+        resized = src.clone();
+    }
+    src.delete();
+
+    // グレースケール化と二値化
+    let processed = new cv.Mat();
+    cv.cvtColor(resized, processed, cv.COLOR_RGBA2GRAY, 0);
+    cv.adaptiveThreshold(processed, processed, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, blockSize, C);
+    resized.delete();
+
+    return processed; // 呼び出し元でdeleteする必要がある
+}
+
+
 // 現在のパラメータで前処理を適用し、結果をキャンバスに表示する
 function applyAndShowPreprocessing() {
     if (!cvReady || !originalImage) return;
@@ -94,13 +120,10 @@ function applyAndShowPreprocessing() {
         const blockSize = parseInt(blockSizeSlider.value);
         const C = parseInt(cValueSlider.value);
 
-        let src = cv.matFromImageData(originalImage);
-        let processed = new cv.Mat();
-        cv.cvtColor(src, processed, cv.COLOR_RGBA2GRAY, 0);
-        cv.adaptiveThreshold(processed, processed, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, blockSize, C);
+        let processed = getProcessedImage(originalImage, blockSize, C);
         cv.imshow(canvas, processed);
-        src.delete();
         processed.delete();
+
     } catch (error) {
         console.error("Pre-processing error:", error);
         updateStatus("画像処理プレビュー中にエラーが発生しました。", "error");
@@ -115,31 +138,26 @@ async function runTesseractWithCv() {
         return;
     }
 
-    let worker; // finallyブロックでアクセスするためにここで定義
+    let worker;
+    let processed;
 
     try {
         updateStatus('画像の前処理をしています...', 'progress');
         const blockSize = parseInt(blockSizeSlider.value);
         const C = parseInt(cValueSlider.value);
 
-        let src = cv.matFromImageData(originalImage);
-        let processed = new cv.Mat();
-        cv.cvtColor(src, processed, cv.COLOR_RGBA2GRAY, 0);
-        cv.adaptiveThreshold(processed, processed, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, blockSize, C);
-        cv.imshow(canvas, processed);
-        src.delete();
-        processed.delete(); // canvasに描画後はmatを解放して良い
+        processed = getProcessedImage(originalImage, blockSize, C);
+        cv.imshow(canvas, processed); // 認識対象をキャンバスに表示
 
         updateStatus('Tesseract.js: ワーカーを準備しています...', 'progress');
         worker = await Tesseract.createWorker('jpn+eng', 1, {
             logger: m => {
                 let statusMessage = m.status;
-                // 'recognizing text' の場合のみ進捗率を追記
                 if (m.status === 'recognizing text' && m.progress) {
                     statusMessage += ` (${Math.floor(m.progress * 100)}%)`;
                 }
                 updateStatus(`認識中: ${statusMessage}`, 'progress');
-                console.log(m); // 詳細なログをコンソールに出力
+                console.log(m);
             }
         });
 
@@ -153,11 +171,11 @@ async function runTesseractWithCv() {
         console.error("Tesseract/OpenCV Error:", error);
         updateStatus("認識処理中にエラーが発生しました。", "error");
     } finally {
+        if (processed) processed.delete();
         if (worker) {
             await worker.terminate();
             console.log("Tesseract worker terminated.");
         }
-        // 認識後、チェックボックスの状態に基づいて表示を復元
         if (!showProcessedCheckbox.checked) {
             restoreOriginalImage();
         }
@@ -166,12 +184,13 @@ async function runTesseractWithCv() {
 
 // Google Cloud Vision AIで認識を実行する
 async function runVisionAI() {
-    const API_KEY = 'YOUR_GOOGLE_CLOUD_VISION_API_KEY'; // ここにAPIキーを設定
+    const API_KEY = 'YOUR_GOOGLE_CLOUD_VISION_API_KEY';
     if (API_KEY === 'YOUR_GOOGLE_CLOUD_VISION_API_KEY') {
         updateStatus("Vision AIのAPIキーが設定されていません。", "error");
         return;
     }
     const API_URL = `https://vision.googleapis.com/v1/images:annotate?key=${API_KEY}`;
+    // Vision AIにはリサイズしていない元の高解像度画像を使用する
     const base64ImageData = canvas.toDataURL('image/jpeg').replace(/^data:image\/jpeg;base64,/, '');
     const requestBody = { requests: [ { image: { content: base64ImageData }, features: [{ type: 'TEXT_DETECTION' }] } ] };
     try {
@@ -195,14 +214,11 @@ async function runVisionAI() {
 
 
 // --- イベントリスナー ---
-
-// カメラ切り替え
 switchCameraBtn.addEventListener('click', () => {
     currentFacingMode = (currentFacingMode === 'user') ? 'environment' : 'user';
     startCamera(currentFacingMode);
 });
 
-// 撮影
 snapBtn.addEventListener('click', () => {
     if (!currentStream || !currentStream.active) {
         alert("カメラが起動していません。");
@@ -217,7 +233,6 @@ snapBtn.addEventListener('click', () => {
     canvas.style.display = 'block';
     captured = true;
 
-    // スライダーとチェックボックスをリセット
     showProcessedCheckbox.checked = false;
     blockSizeSlider.value = 11;
     blockSizeValue.textContent = '11';
@@ -228,7 +243,6 @@ snapBtn.addEventListener('click', () => {
     updateStatus("撮影しました。画像を調整し「テキスト認識」を押してください。", "success");
 });
 
-// テキスト認識
 recognizeBtn.addEventListener('click', () => {
     if (!captured) {
         alert("先に名刺を撮影してください。");
@@ -238,18 +252,18 @@ recognizeBtn.addEventListener('click', () => {
     resultText.value = '';
     updateStatus('認識処理中...', 'progress');
 
-    if (selectedEngine === 'tesseract') {
-        runTesseractWithCv();
-    } else if (selectedEngine === 'vision-ai') {
+    // Vision AIの場合は、認識前にオリジナル画像を復元して高解像度版をAPIに送る
+    if (selectedEngine === 'vision-ai') {
+        restoreOriginalImage();
         runVisionAI();
+    } else {
+        runTesseractWithCv();
     }
 });
 
-// OCRエンジン変更
 visionAiRadio.addEventListener('change', togglePreprocessingControls);
 tesseractRadio.addEventListener('change', togglePreprocessingControls);
 
-// --- 前処理パラメータ変更 ---
 blockSizeSlider.addEventListener('input', () => {
     blockSizeValue.textContent = blockSizeSlider.value;
     if (showProcessedCheckbox.checked) {
@@ -271,7 +285,6 @@ showProcessedCheckbox.addEventListener('change', () => {
         restoreOriginalImage();
     }
 });
-
 
 // --- 初期化処理 ---
 updateStatus("画像処理ライブラリを読込中...", "progress");
