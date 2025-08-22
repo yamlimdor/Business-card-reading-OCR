@@ -115,6 +115,8 @@ async function runTesseractWithCv() {
         return;
     }
 
+    let worker; // finallyブロックでアクセスするためにここで定義
+
     try {
         updateStatus('画像の前処理をしています...', 'progress');
         const blockSize = parseInt(blockSizeSlider.value);
@@ -124,35 +126,38 @@ async function runTesseractWithCv() {
         let processed = new cv.Mat();
         cv.cvtColor(src, processed, cv.COLOR_RGBA2GRAY, 0);
         cv.adaptiveThreshold(processed, processed, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, blockSize, C);
-
-        // Put the processed image onto the canvas to be read by Tesseract
         cv.imshow(canvas, processed);
+        src.delete();
+        processed.delete(); // canvasに描画後はmatを解放して良い
 
-        // Run recognition on the canvas that now holds the processed image
-        updateStatus('Tesseract.js: テキストを認識中...', 'progress');
-        const { data: { text } } = await Tesseract.recognize(
-            canvas,
-            'jpn+eng',
-            {
-                logger: m => {
-                    if (m.status === 'recognizing text') {
-                        updateStatus(`認識中... (${Math.floor(m.progress * 100)}%)`, 'progress');
-                    }
+        updateStatus('Tesseract.js: ワーカーを準備しています...', 'progress');
+        worker = await Tesseract.createWorker('jpn+eng', 1, {
+            logger: m => {
+                let statusMessage = m.status;
+                // 'recognizing text' の場合のみ進捗率を追記
+                if (m.status === 'recognizing text' && m.progress) {
+                    statusMessage += ` (${Math.floor(m.progress * 100)}%)`;
                 }
+                updateStatus(`認識中: ${statusMessage}`, 'progress');
+                console.log(m); // 詳細なログをコンソールに出力
             }
-        );
+        });
+
+        updateStatus('Tesseract.js: テキストを認識中...', 'progress');
+        const { data: { text } } = await worker.recognize(canvas);
 
         updateStatus('Tesseract.js で認識完了', 'success');
         resultText.value = text;
-        
-        src.delete();
-        processed.delete();
 
     } catch (error) {
         console.error("Tesseract/OpenCV Error:", error);
         updateStatus("認識処理中にエラーが発生しました。", "error");
     } finally {
-        // After recognition, restore the view based on the checkbox
+        if (worker) {
+            await worker.terminate();
+            console.log("Tesseract worker terminated.");
+        }
+        // 認識後、チェックボックスの状態に基づいて表示を復元
         if (!showProcessedCheckbox.checked) {
             restoreOriginalImage();
         }
