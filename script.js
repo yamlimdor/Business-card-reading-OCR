@@ -35,6 +35,12 @@ function onOpenCvReady() {
     updateStatus("準備完了", "info");
 }
 
+// OpenCVの読込エラー時に呼ばれる関数
+function onOpenCvError() {
+    console.error("Failed to load OpenCV.js");
+    updateStatus("画像処理ライブラリの読込に失敗しました。ネットワーク接続を確認し、ページを再読み込みしてください。", "error");
+}
+
 // ステータスメッセージを更新する
 function updateStatus(message, type) {
     statusText.textContent = message;
@@ -287,6 +293,18 @@ showProcessedCheckbox.addEventListener('change', () => {
 });
 
 // --- 初期化処理 ---
-updateStatus("画像処理ライブラリを読込中...", "progress");
-recognizeBtn.disabled = true;
-startCamera(currentFacingMode);
+function init() {
+    updateStatus("画像処理ライブラリを読込中...", "progress");
+    recognizeBtn.disabled = true;
+    startCamera(currentFacingMode);
+
+    // 15秒後にOpenCVがロードされているか確認
+    setTimeout(() => {
+        if (!cvReady) {
+            console.error("OpenCV.js loading timed out.");
+            updateStatus("画像処理ライブラリの読込がタイムアウトしました。ページの再読み込みを試してください。", "error");
+        }
+    }, 15000);
+}
+
+init();
