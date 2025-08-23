@@ -167,6 +167,10 @@ async function runTesseractWithCv() {
             }
         });
 
+        await worker.setParameters({
+            tessedit_deadline_msec: 20000, // 20秒のタイムアウト
+        });
+
         updateStatus('Tesseract.js: テキストを認識中...', 'progress');
         const { data: { text } } = await worker.recognize(canvas);
 
@@ -175,7 +179,12 @@ async function runTesseractWithCv() {
 
     } catch (error) {
         console.error("Tesseract/OpenCV Error:", error);
-        updateStatus("認識処理中にエラーが発生しました。", "error");
+        // タイムアウトエラーかどうかを判定し、メッセージを出し分ける
+        if (error && typeof error.message === 'string' && error.message.includes('deadline')) {
+            updateStatus("認識処理がタイムアウトしました。画像設定を変更して再試行してください。", "error");
+        } else {
+            updateStatus("認識処理中にエラーが発生しました。", "error");
+        }
     } finally {
         if (processed) processed.delete();
         if (worker) {
